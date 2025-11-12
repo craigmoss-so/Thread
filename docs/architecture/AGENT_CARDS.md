@@ -318,12 +318,36 @@ Worker nodes execute specific tasks using specialized skills and LLM models.
     ],
     "model_info": {
       "provider": "ollama",
-      "endpoint": "http://localhost:11434",
       "model": "codellama:13b",
       "context_window": 16384,
       "temperature": 0.1,
       "specialization": "code-understanding",
-      "code_optimized": true
+      "code_optimized": true,
+
+      "ollama": {
+        "strategy": "auto-select",
+        "preferred_instances": [
+          "network-server-1",
+          "local-main",
+          "cloud-backup"
+        ],
+        "requirements": {
+          "required_tags": ["code-models"],
+          "min_ram_gb": 8,
+          "max_latency_ms": 100
+        },
+        "current_instance": {
+          "id": "network-server-1",
+          "endpoint": "http://192.168.1.10:11434",
+          "status": "online",
+          "last_used": "2025-01-15T10:30:00Z"
+        },
+        "failover": {
+          "enabled": true,
+          "max_retries": 3,
+          "retry_delay_ms": 2000
+        }
+      }
     },
     "performance": {
       "avg_task_time_seconds": 35,
@@ -519,7 +543,6 @@ Detailed LLM configuration used across all node types:
 ```typescript
 interface ModelInfo {
   provider: "ollama" | "openai" | "anthropic" | "custom";
-  endpoint: string;
   model: string;
   context_window: number;
   temperature: number;
@@ -527,6 +550,42 @@ interface ModelInfo {
   top_k?: number;
   repeat_penalty?: number;
   stop_sequences?: string[];
+
+  // OLLAMA Multi-Instance Configuration
+  ollama?: {
+    // Instance assignment strategy
+    strategy: "auto-select" | "specific" | "load-balanced";
+
+    // Preferred instances (in priority order)
+    preferred_instances: string[];  // Instance IDs
+
+    // Requirements for instance selection
+    requirements?: {
+      require_gpu?: boolean;
+      min_ram_gb?: number;
+      max_latency_ms?: number;
+      required_tags?: string[];      // e.g., ['code-models', 'gpu']
+      min_success_rate?: number;
+    };
+
+    // Current assigned instance
+    current_instance?: {
+      id: string;
+      endpoint: string;
+      status: "online" | "offline" | "degraded";
+      last_used: string;
+    };
+
+    // Failover configuration
+    failover?: {
+      enabled: boolean;
+      max_retries: number;
+      retry_delay_ms: number;
+    };
+  };
+
+  // Legacy single-endpoint support (deprecated)
+  endpoint?: string;  // Use ollama.current_instance.endpoint instead
 
   // Thread Node specific
   optimization_focus?: string;

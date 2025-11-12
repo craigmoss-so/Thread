@@ -247,6 +247,30 @@ When user clicks **[⚙️ Advanced]** on a card:
 │  ─────────────────────────────────────────────     │
 │  Model: [codellama:13b          ▼]                │
 │                                                     │
+│  OLLAMA Instance Assignment                        │
+│  ─────────────────────────────────────────────     │
+│  Strategy:                                         │
+│  ● Auto-Select (Recommended)                       │
+│  ○ Specific Instances                              │
+│  ○ Load Balanced                                   │
+│                                                     │
+│  Preferred Instances: (priority order)             │
+│  1. [Local Machine (GPU)     ▼] [Remove]          │
+│  2. [Network Server 1        ▼] [Remove]          │
+│  3. [Cloud Backup            ▼] [Remove]          │
+│  [+ Add Fallback Instance]                         │
+│                                                     │
+│  Instance Requirements:                            │
+│  ☐ Require GPU                                     │
+│  ☐ Prefer Low Latency (< 50ms)                    │
+│  Max Latency: [100 ] ms                            │
+│  Tags: [code-models          ]                     │
+│                                                     │
+│  Current Instance: Local Machine (GPU)             │
+│  Status: ● Online • Load: 35% • 18ms               │
+│                                                     │
+│  Model Parameters                                  │
+│  ─────────────────────────────────────────────     │
 │  Temperature:     [0.1     ]  🎚️                   │
 │  Top P:           [0.9     ]  🎚️                   │
 │  Top K:           [40      ]  🎚️                   │
@@ -368,43 +392,177 @@ Active task flow: Animated dots flowing along line
 Error state: Red connection line
 ```
 
-## Model Management Panel
+## OLLAMA Instance & Model Management Panel
 
-Sidebar panel for managing OLLAMA models:
+Sidebar panel with tabs for managing multiple OLLAMA instances and their models:
+
+### Instances Tab
 
 ```
 ┌────────────────────────────────┐
-│  📦 Model Management            │
+│  🖥️  OLLAMA Instances    [+]   │
 ├────────────────────────────────┤
 │                                │
-│  Local Models                  │
+│  ● Local Machine (GPU)         │
+│     http://localhost:11434     │
+│     Load: 35% • 18ms latency   │
+│     Models: 5 • Priority: 100  │
+│     [Edit] [Test] [⚙️]         │
+│                                │
+│  ● Network Server 1            │
+│     http://192.168.1.10:11434  │
+│     Load: 60% • 25ms latency   │
+│     Models: 8 • Priority: 80   │
+│     🏷️ code-models, high-cpu   │
+│     [Edit] [Test] [⚙️]         │
+│                                │
+│  ● Network Server 2 (GPU)      │
+│     http://192.168.1.11:11434  │
+│     Load: 22% • 20ms latency   │
+│     Models: 4 • Priority: 85   │
+│     🏷️ gpu, fast                │
+│     [Edit] [Test] [⚙️]         │
+│                                │
+│  ○ Cloud Backup (Offline)      │
+│     https://ollama.cloud:443   │
+│     Last seen: 5m ago          │
+│     Priority: 50               │
+│     [Edit] [Test] [⚙️]         │
+│                                │
+│  [+ Add Instance]              │
+│  [Discover Network Instances]  │
+│                                │
+└────────────────────────────────┘
+```
+
+### Add Instance Dialog
+
+When user clicks **[+ Add Instance]**:
+
+```
+┌─────────────────────────────────────────┐
+│  Add OLLAMA Instance                    │
+├─────────────────────────────────────────┤
+│                                         │
+│  Name:                                  │
+│  [Local GPU Server              ]      │
+│                                         │
+│  Endpoint URL:                          │
+│  [http://192.168.1.15:11434     ]      │
+│                                         │
+│  Location:                              │
+│  ◉ Local        ○ Network   ○ Cloud    │
+│                                         │
+│  Priority: [85  ] 🎚️                   │
+│  (Higher = preferred)                   │
+│                                         │
+│  Tags: (space-separated)                │
+│  [gpu high-ram fast            ]       │
+│                                         │
+│  Authentication:                        │
+│  ○ None                                 │
+│  ○ Bearer Token                         │
+│  ○ API Key                              │
+│                                         │
+│  Max Concurrent Requests: [10  ]       │
+│                                         │
+│  ☐ Auto-discover models on save        │
+│                                         │
+│  [Test Connection] [Save] [Cancel]     │
+└─────────────────────────────────────────┘
+```
+
+### Models Tab (Per Instance)
+
+Click on an instance to see its models:
+
+```
+┌────────────────────────────────┐
+│  📦 Models: Local Machine      │
+├────────────────────────────────┤
+│                                │
+│  Instance: Local Machine (GPU) │
+│  Endpoint: localhost:11434     │
+│                                │
+│  Loaded Models                 │
 │  ─────────────────────────     │
 │                                │
 │  ● llama3:70b                  │
-│     40GB • Last used: 2m ago   │
+│     40GB • VRAM: 18GB          │
+│     Used by: Architect #1      │
 │     [Unload] [Remove]          │
 │                                │
 │  ● mistral:7b                  │
-│     4.1GB • Last used: 5m ago  │
+│     4.1GB • VRAM: 3GB          │
+│     Used by: Broker #1, #2     │
 │     [Unload] [Remove]          │
+│                                │
+│  Available Models              │
+│  ─────────────────────────     │
 │                                │
 │  ○ codellama:13b              │
 │     7.4GB • Not loaded         │
 │     [Load] [Remove]            │
 │                                │
-│  Available to Pull             │
+│  ○ llama3:8b                  │
+│     4.7GB • Not loaded         │
+│     [Load] [Remove]            │
+│                                │
+│  Pull New Models               │
 │  ─────────────────────────     │
 │  [ Search models...        ]   │
-│                                │
-│  • llama3:8b (4.7GB)          │
-│    [Pull Model]                │
 │                                │
 │  • deepseek-coder:6.7b        │
 │    [Pull Model]                │
 │                                │
 │  Memory Usage: 52GB / 128GB    │
 │  ▓▓▓▓▓░░░░░░░░░░ 41%          │
+│                                │
+│  [← Back to Instances]         │
 └────────────────────────────────┘
+```
+
+### Instance Status Monitor
+
+Real-time status dashboard:
+
+```
+┌─────────────────────────────────────────┐
+│  📊 OLLAMA Instances Overview           │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │ ● Local Machine (GPU)           │   │
+│  │   Load: ▓▓▓░░░░░░░ 35%         │   │
+│  │   Latency: 18ms • RPM: 45      │   │
+│  │   Models: 5 loaded             │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │ ● Network Server 1              │   │
+│  │   Load: ▓▓▓▓▓▓░░░░ 60%         │   │
+│  │   Latency: 25ms • RPM: 82      │   │
+│  │   Models: 8 loaded             │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │ ● Network Server 2 (GPU)        │   │
+│  │   Load: ▓▓░░░░░░░░ 22%         │   │
+│  │   Latency: 20ms • RPM: 28      │   │
+│  │   Models: 4 loaded             │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │ ○ Cloud Backup - OFFLINE        │   │
+│  │   Last seen: 5m ago            │   │
+│  │   ⚠ Automatic failover active   │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+│  Total Requests/min: 155               │
+│  Average Latency: 21ms                 │
+│  Success Rate: 99.2%                   │
+│                                         │
+└─────────────────────────────────────────┘
 ```
 
 ## Interaction Patterns

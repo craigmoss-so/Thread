@@ -15,6 +15,8 @@ Thread Node uses **OLLAMA** as its primary LLM provider for local, privacy-focus
 
 ## OLLAMA Architecture in Thread Node
 
+### Single Instance (Basic Setup)
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     Thread Node Network                      │
@@ -41,6 +43,39 @@ Thread Node uses **OLLAMA** as its primary LLM provider for local, privacy-focus
 │  Model Library: ~/.ollama/models/                           │
 └──────────────────────────────────────────────────────────────┘
 ```
+
+### Multi-Instance (Distributed Setup)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Thread Node Network                          │
+│                                                                  │
+│  Architect ──┐   Broker ──┐   Worker ──┐   Validator ──┐       │
+│  Node        │   Node     │   Node     │   Node        │       │
+└──────┬───────┴──────┬─────┴──────┬─────┴──────┬────────┴───────┘
+       │              │            │            │
+       │ (assigns)    │ (assigns)  │ (assigns)  │ (assigns)
+       ↓              ↓            ↓            ↓
+┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+│ OLLAMA #1    │ │ OLLAMA #2    │ │ OLLAMA #3    │ │ OLLAMA #4    │
+│ localhost    │ │ 192.168.1.10 │ │ 192.168.1.11 │ │ ollama.cloud │
+│ :11434       │ │ :11434       │ │ :11434       │ │ :443         │
+├──────────────┤ ├──────────────┤ ├──────────────┤ ├──────────────┤
+│ llama3:70b   │ │ mistral:7b   │ │ codellama:13b│ │ llama3:70b   │
+│ mixtral:8x7b │ │ llama3:8b    │ │ llama3:8b    │ │ mistral:7b   │
+│              │ │              │ │ deepseek     │ │              │
+│ High-RAM GPU │ │ Fast CPU     │ │ Code-focused │ │ Cloud Backup │
+└──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘
+```
+
+### Benefits of Multi-Instance Setup
+
+- **Load Distribution**: Spread inference across multiple machines
+- **Specialized Hardware**: GPU machines for large models, CPU for small models
+- **Model Availability**: Different models on different instances
+- **Geographic Distribution**: Reduce latency with nearby instances
+- **Failover**: Automatic fallback if primary instance unavailable
+- **Resource Optimization**: Assign resource-intensive nodes to powerful machines
 
 ## Recommended Models by Node Type
 
@@ -153,6 +188,472 @@ Thread Node uses **OLLAMA** as its primary LLM provider for local, privacy-focus
 **Alternative Models**:
 - `llama3.1:70b` - Enhanced validation capability
 - `mixtral:8x7b` - Good balance of speed and accuracy
+
+## Multi-Instance OLLAMA Configuration
+
+Thread Node supports connecting to **multiple OLLAMA instances** across different machines for improved performance, load distribution, and resource optimization.
+
+### Instance Registry
+
+The system maintains a registry of available OLLAMA instances:
+
+```typescript
+interface OllamaInstance {
+  id: string;                    // Unique identifier
+  name: string;                  // Human-readable name
+  endpoint: string;              // URL (http://host:port)
+  location: 'local' | 'network' | 'cloud';
+  status: 'online' | 'offline' | 'degraded';
+
+  // Capabilities
+  available_models: string[];
+  hardware: {
+    gpu: boolean;
+    gpu_memory_gb?: number;
+    cpu_cores: number;
+    ram_gb: number;
+  };
+
+  // Performance metrics
+  metrics: {
+    avg_latency_ms: number;
+    requests_per_minute: number;
+    current_load: number;        // 0.0 - 1.0
+    success_rate: number;
+  };
+
+  // Network info
+  network: {
+    latency_ms: number;
+    bandwidth_mbps: number;
+    is_local: boolean;
+  };
+
+  // Authentication
+  auth?: {
+    type: 'none' | 'bearer' | 'api_key';
+    credentials?: string;
+  };
+
+  // Metadata
+  tags: string[];                // e.g., ['gpu', 'high-ram', 'code-models']
+  priority: number;              // Higher = preferred
+  max_concurrent_requests: number;
+  created_at: string;
+  last_seen: string;
+}
+```
+
+### Configuration Examples
+
+#### System-wide Instance Configuration
+
+```yaml
+# config/ollama-instances.yaml
+ollama_instances:
+  - id: local-main
+    name: "Local Machine (GPU)"
+    endpoint: "http://localhost:11434"
+    location: local
+    priority: 100
+    hardware:
+      gpu: true
+      gpu_memory_gb: 24
+      cpu_cores: 16
+      ram_gb: 64
+    tags: [gpu, high-ram, local]
+    max_concurrent_requests: 10
+
+  - id: network-server-1
+    name: "Network Server 1 (Code Models)"
+    endpoint: "http://192.168.1.10:11434"
+    location: network
+    priority: 80
+    hardware:
+      gpu: false
+      cpu_cores: 32
+      ram_gb: 128
+    tags: [code-models, high-cpu, network]
+    max_concurrent_requests: 20
+
+  - id: network-server-2
+    name: "Network Server 2 (Fast Inference)"
+    endpoint: "http://192.168.1.11:11434"
+    location: network
+    priority: 85
+    hardware:
+      gpu: true
+      gpu_memory_gb: 16
+      cpu_cores: 12
+      ram_gb: 48
+    tags: [gpu, fast, network]
+    max_concurrent_requests: 15
+
+  - id: cloud-backup
+    name: "Cloud OLLAMA (Backup)"
+    endpoint: "https://ollama.example.com:443"
+    location: cloud
+    priority: 50
+    auth:
+      type: bearer
+      credentials: "${CLOUD_OLLAMA_TOKEN}"
+    tags: [cloud, backup, high-availability]
+    max_concurrent_requests: 5
+```
+
+#### Node-Specific Instance Assignment
+
+```yaml
+# Architect Node Configuration
+node:
+  type: architect
+  agent_id: architect-node-001
+
+ollama:
+  # Preferred instances (in order)
+  instances:
+    - local-main          # Try local GPU first
+    - network-server-2    # Fallback to network GPU
+    - cloud-backup        # Last resort
+
+  # Require specific capabilities
+  requirements:
+    min_ram_gb: 32
+    prefer_gpu: true
+    max_latency_ms: 100
+
+  # Model selection
+  model: llama3:70b
+```
+
+```yaml
+# Worker Node Configuration (Code Analysis)
+node:
+  type: worker
+  agent_id: worker-code-001
+  specialization: code-analysis
+
+ollama:
+  # Assign to code-optimized instance
+  instances:
+    - network-server-1    # Has code models
+    - local-main          # Fallback to local
+
+  requirements:
+    tags: [code-models]
+    min_cpu_cores: 8
+
+  model: codellama:13b
+```
+
+### Instance Discovery and Health Monitoring
+
+#### Auto-Discovery on Local Network
+
+```typescript
+class OllamaDiscoveryService {
+  async discoverLocalInstances(): Promise<OllamaInstance[]> {
+    const instances: OllamaInstance[] = [];
+
+    // Check localhost
+    instances.push(await this.probeInstance('http://localhost:11434'));
+
+    // Scan local network (192.168.x.x)
+    const localIPs = await this.getLocalNetworkIPs();
+    for (const ip of localIPs) {
+      try {
+        const instance = await this.probeInstance(`http://${ip}:11434`);
+        if (instance) instances.push(instance);
+      } catch (e) {
+        // Instance not available
+      }
+    }
+
+    return instances;
+  }
+
+  async probeInstance(endpoint: string): Promise<OllamaInstance | null> {
+    try {
+      // Check if OLLAMA is running
+      const response = await fetch(`${endpoint}/api/tags`, {
+        timeout: 5000
+      });
+
+      if (!response.ok) return null;
+
+      const data = await response.json();
+
+      // Get system info if available
+      const systemInfo = await fetch(`${endpoint}/api/system`);
+
+      return {
+        id: this.generateId(endpoint),
+        name: `OLLAMA at ${endpoint}`,
+        endpoint,
+        location: this.detectLocation(endpoint),
+        status: 'online',
+        available_models: data.models.map(m => m.name),
+        hardware: systemInfo.data?.hardware || this.estimateHardware(data),
+        // ... rest of instance info
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+}
+```
+
+#### Health Check Loop
+
+```typescript
+class OllamaHealthMonitor {
+  private instances: Map<string, OllamaInstance> = new Map();
+
+  async startMonitoring(checkIntervalMs: number = 30000) {
+    setInterval(async () => {
+      for (const [id, instance] of this.instances) {
+        const health = await this.checkHealth(instance);
+
+        // Update status
+        instance.status = health.status;
+        instance.metrics = health.metrics;
+        instance.last_seen = new Date().toISOString();
+
+        // Emit event if status changed
+        if (health.status !== instance.status) {
+          this.emit('instance-status-changed', { id, instance });
+        }
+      }
+    }, checkIntervalMs);
+  }
+
+  async checkHealth(instance: OllamaInstance): Promise<{
+    status: 'online' | 'offline' | 'degraded';
+    metrics: OllamaInstance['metrics'];
+  }> {
+    try {
+      const start = Date.now();
+      const response = await fetch(`${instance.endpoint}/api/tags`, {
+        timeout: 5000
+      });
+      const latency = Date.now() - start;
+
+      if (!response.ok) {
+        return { status: 'offline', metrics: this.getDefaultMetrics() };
+      }
+
+      // Get current load
+      const psResponse = await fetch(`${instance.endpoint}/api/ps`);
+      const psData = await psResponse.json();
+      const currentLoad = this.calculateLoad(psData);
+
+      return {
+        status: latency > 1000 ? 'degraded' : 'online',
+        metrics: {
+          avg_latency_ms: latency,
+          requests_per_minute: instance.metrics?.requests_per_minute || 0,
+          current_load: currentLoad,
+          success_rate: 0.99
+        }
+      };
+    } catch (error) {
+      return { status: 'offline', metrics: this.getDefaultMetrics() };
+    }
+  }
+}
+```
+
+### Instance Selection Strategies
+
+When a node needs to make an inference request, Thread Node selects the optimal OLLAMA instance:
+
+```typescript
+interface InstanceSelectionCriteria {
+  required_model: string;
+  preferred_tags?: string[];
+  max_latency_ms?: number;
+  min_success_rate?: number;
+  require_gpu?: boolean;
+}
+
+class OllamaInstanceSelector {
+  selectInstance(
+    criteria: InstanceSelectionCriteria,
+    instances: OllamaInstance[]
+  ): OllamaInstance | null {
+    // Filter by requirements
+    let candidates = instances.filter(i =>
+      i.status === 'online' &&
+      i.available_models.includes(criteria.required_model) &&
+      (!criteria.max_latency_ms || i.network.latency_ms <= criteria.max_latency_ms) &&
+      (!criteria.min_success_rate || i.metrics.success_rate >= criteria.min_success_rate) &&
+      (!criteria.require_gpu || i.hardware.gpu)
+    );
+
+    if (candidates.length === 0) return null;
+
+    // Score each candidate
+    const scored = candidates.map(instance => ({
+      instance,
+      score: this.calculateScore(instance, criteria)
+    }));
+
+    // Sort by score (highest first)
+    scored.sort((a, b) => b.score - a.score);
+
+    return scored[0].instance;
+  }
+
+  private calculateScore(
+    instance: OllamaInstance,
+    criteria: InstanceSelectionCriteria
+  ): number {
+    let score = instance.priority;
+
+    // Prefer lower latency
+    score += (1000 - instance.network.latency_ms) / 10;
+
+    // Prefer lower load
+    score += (1 - instance.metrics.current_load) * 100;
+
+    // Prefer local instances
+    if (instance.network.is_local) score += 50;
+
+    // Prefer GPU for large models
+    if (instance.hardware.gpu && criteria.require_gpu) score += 75;
+
+    // Prefer matching tags
+    if (criteria.preferred_tags) {
+      const matchingTags = instance.tags.filter(t =>
+        criteria.preferred_tags!.includes(t)
+      );
+      score += matchingTags.length * 20;
+    }
+
+    return score;
+  }
+}
+```
+
+### Load Balancing
+
+For high-throughput scenarios, distribute requests across multiple instances:
+
+```typescript
+class OllamaLoadBalancer {
+  private instances: OllamaInstance[];
+  private roundRobinIndex: number = 0;
+
+  async distribute(
+    requests: InferenceRequest[]
+  ): Promise<Map<string, InferenceRequest[]>> {
+    const distribution = new Map<string, InferenceRequest[]>();
+
+    for (const request of requests) {
+      // Select instance based on strategy
+      const instance = this.selectByStrategy(
+        request,
+        this.strategy // 'round-robin', 'least-loaded', 'latency-based'
+      );
+
+      if (!distribution.has(instance.id)) {
+        distribution.set(instance.id, []);
+      }
+      distribution.get(instance.id)!.push(request);
+    }
+
+    return distribution;
+  }
+
+  private selectByStrategy(
+    request: InferenceRequest,
+    strategy: 'round-robin' | 'least-loaded' | 'latency-based'
+  ): OllamaInstance {
+    const eligibleInstances = this.instances.filter(i =>
+      i.status === 'online' &&
+      i.available_models.includes(request.model)
+    );
+
+    switch (strategy) {
+      case 'round-robin':
+        const instance = eligibleInstances[this.roundRobinIndex % eligibleInstances.length];
+        this.roundRobinIndex++;
+        return instance;
+
+      case 'least-loaded':
+        return eligibleInstances.reduce((least, current) =>
+          current.metrics.current_load < least.metrics.current_load ? current : least
+        );
+
+      case 'latency-based':
+        return eligibleInstances.reduce((fastest, current) =>
+          current.network.latency_ms < fastest.network.latency_ms ? current : fastest
+        );
+    }
+  }
+}
+```
+
+### Failover Handling
+
+Automatic failover when an instance becomes unavailable:
+
+```typescript
+class OllamaFailoverHandler {
+  async executeWithFailover(
+    request: InferenceRequest,
+    preferredInstances: string[]
+  ): Promise<InferenceResult> {
+    for (const instanceId of preferredInstances) {
+      const instance = this.getInstanceById(instanceId);
+
+      if (!instance || instance.status !== 'online') {
+        console.log(`Instance ${instanceId} unavailable, trying next...`);
+        continue;
+      }
+
+      try {
+        const result = await this.executeRequest(instance, request);
+        return result;
+      } catch (error) {
+        console.error(`Request failed on ${instanceId}:`, error);
+
+        // Mark instance as degraded
+        instance.status = 'degraded';
+
+        // Continue to next instance
+        continue;
+      }
+    }
+
+    throw new Error('All OLLAMA instances unavailable');
+  }
+}
+```
+
+### Environment Variable Configuration
+
+For simpler setups, use environment variables:
+
+```bash
+# .env
+OLLAMA_INSTANCES=http://localhost:11434,http://192.168.1.10:11434,https://ollama.cloud:443
+OLLAMA_INSTANCE_NAMES=Local,NetworkServer,CloudBackup
+OLLAMA_INSTANCE_PRIORITIES=100,80,50
+OLLAMA_DEFAULT_INSTANCE=http://localhost:11434
+```
+
+```typescript
+// Parse from environment
+const instances = process.env.OLLAMA_INSTANCES?.split(',').map((endpoint, i) => ({
+  id: `instance-${i}`,
+  name: process.env.OLLAMA_INSTANCE_NAMES?.split(',')[i] || endpoint,
+  endpoint: endpoint.trim(),
+  priority: parseInt(process.env.OLLAMA_INSTANCE_PRIORITIES?.split(',')[i] || '50'),
+  location: endpoint.includes('localhost') ? 'local' :
+            endpoint.includes('192.168') ? 'network' : 'cloud'
+}));
+```
 
 ## OLLAMA API Integration
 
