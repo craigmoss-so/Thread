@@ -84,6 +84,20 @@ Complete UI/UX specifications including:
 
 Essential for frontend development and understanding the user experience.
 
+### [DOCKER_DEPLOYMENT.md](./DOCKER_DEPLOYMENT.md)
+**Docker containerization and deployment guide**
+
+Complete deployment documentation including:
+- Multi-container architecture with Docker Compose
+- Dockerfiles for all services
+- OLLAMA integration in containers
+- Production and development configurations
+- GPU support setup
+- Multi-host distributed deployments
+- Monitoring and troubleshooting
+
+Critical for deploying Thread Node with all prerequisites bundled.
+
 ## Quick Start
 
 ### For System Architects
@@ -102,9 +116,10 @@ Essential for frontend development and understanding the user experience.
 3. Reference [MESSAGE_FLOWS.md](./MESSAGE_FLOWS.md) for real-time updates
 
 ### For DevOps Engineers
-1. Check [OLLAMA_INTEGRATION.md](./OLLAMA_INTEGRATION.md) for deployment
-2. Review resource requirements in [ARCHITECTURE.md](./ARCHITECTURE.md)
-3. Plan infrastructure based on scalability section
+1. Start with [DOCKER_DEPLOYMENT.md](./DOCKER_DEPLOYMENT.md) for containerization
+2. Check [OLLAMA_INTEGRATION.md](./OLLAMA_INTEGRATION.md) for multi-instance setup
+3. Review resource requirements in [ARCHITECTURE.md](./ARCHITECTURE.md)
+4. Plan infrastructure based on scalability section
 
 ## System Components
 

@@ -266,3 +266,4 @@ Nodes can establish connections beyond predefined hierarchy:
 - [Message Flow Diagrams](./MESSAGE_FLOWS.md)
 - [OLLAMA Integration](./OLLAMA_INTEGRATION.md)
 - [UI Design & Canvas Interface](./UI_DESIGN.md)
+- [Docker Deployment Guide](./DOCKER_DEPLOYMENT.md)

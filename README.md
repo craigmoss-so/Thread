@@ -100,6 +100,48 @@ npm install
 npm start
 ```
 
+### Docker Deployment (Recommended)
+
+Thread Node can run as a fully containerized application with all prerequisites included:
+
+```bash
+# Clone repository
+git clone https://github.com/yourusername/thread-node.git
+cd thread-node
+
+# Copy environment template
+cp .env.example .env
+
+# Edit .env and set your passwords
+nano .env
+
+# Start all services with Docker Compose
+docker-compose up -d
+
+# Check status
+docker-compose ps
+
+# View logs
+docker-compose logs -f
+
+# Pull OLLAMA models (first time)
+docker-compose exec ollama ollama pull llama3:8b
+docker-compose exec ollama ollama pull mistral:7b
+docker-compose exec ollama ollama pull codellama:13b
+```
+
+Access the application at `http://localhost:3000`
+
+**What's included:**
+- ✅ React frontend with Canvas UI
+- ✅ Python/Node.js backend with A2A gateway
+- ✅ OLLAMA server for local LLM inference
+- ✅ PostgreSQL for state persistence
+- ✅ Redis for message queuing
+- ✅ Pre-configured networking and volumes
+
+See **[DOCKER_DEPLOYMENT.md](./docs/architecture/DOCKER_DEPLOYMENT.md)** for complete deployment guide.
+
 ## Project Status
 
 **Current Phase**: Architecture & Design ✅
@@ -108,7 +150,9 @@ npm start
 - [x] A2A protocol integration plan
 - [x] Agent Card specifications
 - [x] OLLAMA integration architecture
+- [x] Multi-instance OLLAMA support
 - [x] Message flow documentation
+- [x] Docker deployment configuration
 - [ ] Protocol gateway implementation
 - [ ] Node implementations (Architect, Broker, Worker, Validator)
 - [ ] Canvas UI development
