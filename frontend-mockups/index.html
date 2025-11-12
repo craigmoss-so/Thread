@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thread - Nodal Agent System</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+        <div class="nav-left">
+            <h1 class="app-title">Thread</h1>
+            <span class="app-subtitle">Nodal Agent System</span>
+        </div>
+        <div class="nav-center">
+            <button class="nav-btn" id="newProjectBtn">New Project</button>
+            <button class="nav-btn" id="saveBtn">Save</button>
+            <button class="nav-btn" id="loadBtn">Load</button>
+        </div>
+        <div class="nav-right">
+            <button class="nav-btn icon-btn" id="settingsBtn">⚙️</button>
+            <button class="nav-btn icon-btn" id="helpBtn">❓</button>
+            <button class="nav-btn" id="themeToggle">🌓</button>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Sidebar - Node Palette -->
+        <aside class="left-sidebar">
+            <h3>Node Types</h3>
+            <div class="node-palette">
+                <div class="palette-node architect" draggable="true" data-type="architect">
+                    <div class="node-icon">🎯</div>
+                    <span>Architect</span>
+                </div>
+                <div class="palette-node broker" draggable="true" data-type="broker">
+                    <div class="node-icon">🔀</div>
+                    <span>Broker</span>
+                </div>
+                <div class="palette-node worker" draggable="true" data-type="worker">
+                    <div class="node-icon">⚙️</div>
+                    <span>Worker</span>
+                </div>
+                <div class="palette-node validator" draggable="true" data-type="validator">
+                    <div class="node-icon">✓</div>
+                    <span>Validator</span>
+                </div>
+            </div>
+
+            <div class="palette-section">
+                <h3>Tools</h3>
+                <button class="tool-btn">Clear Canvas</button>
+                <button class="tool-btn">Auto-Arrange</button>
+                <button class="tool-btn">Export Config</button>
+            </div>
+
+            <div class="palette-section">
+                <h3>Canvas Controls</h3>
+                <label>
+                    <input type="checkbox" id="showConnections"> Show Connections
+                </label>
+                <label>
+                    <input type="checkbox" id="showLabels" checked> Show Labels
+                </label>
+                <label>
+                    <input type="checkbox" id="gridSnap"> Snap to Grid
+                </label>
+            </div>
+        </aside>
+
+        <!-- Canvas Area -->
+        <main class="canvas-container">
+            <div class="canvas-toolbar">
+                <button class="toolbar-btn active" id="selectMode">🖱️ Select</button>
+                <button class="toolbar-btn" id="connectMode">🔗 Connect</button>
+                <button class="toolbar-btn" id="panMode">✋ Pan</button>
+                <div class="toolbar-divider"></div>
+                <button class="toolbar-btn" id="zoomIn">➕</button>
+                <span class="zoom-level">100%</span>
+                <button class="toolbar-btn" id="zoomOut">➖</button>
+                <button class="toolbar-btn" id="fitView">⛶ Fit</button>
+            </div>
+
+            <div class="canvas" id="mainCanvas">
+                <!-- Sample Nodes (for mockup) -->
+                <div class="canvas-node architect" style="left: 100px; top: 100px;" data-node-id="node-1">
+                    <div class="node-header">
+                        <span class="node-type-icon">🎯</span>
+                        <span class="node-label">Architect-1</span>
+                        <span class="node-status active"></span>
+                    </div>
+                    <div class="node-body">
+                        <div class="model-info">GPT-4</div>
+                        <div class="node-stats">
+                            <span class="stat">Tasks: 3</span>
+                        </div>
+                    </div>
+                    <div class="node-ports">
+                        <div class="port input" data-port="input"></div>
+                        <div class="port output" data-port="output"></div>
+                    </div>
+                </div>
+
+                <div class="canvas-node broker" style="left: 350px; top: 100px;" data-node-id="node-2">
+                    <div class="node-header">
+                        <span class="node-type-icon">🔀</span>
+                        <span class="node-label">Broker-1</span>
+                        <span class="node-status active"></span>
+                    </div>
+                    <div class="node-body">
+                        <div class="model-info">Claude 3.5</div>
+                        <div class="node-stats">
+                            <span class="stat">Queue: 5</span>
+                        </div>
+                    </div>
+                    <div class="node-ports">
+                        <div class="port input" data-port="input"></div>
+                        <div class="port output" data-port="output"></div>
+                    </div>
+                </div>
+
+                <div class="canvas-node worker" style="left: 250px; top: 300px;" data-node-id="node-3">
+                    <div class="node-header">
+                        <span class="node-type-icon">⚙️</span>
+                        <span class="node-label">Worker-1</span>
+                        <span class="node-status working"></span>
+                    </div>
+                    <div class="node-body">
+                        <div class="model-info">Llama 3</div>
+                        <div class="node-stats">
+                            <span class="stat">Progress: 60%</span>
+                        </div>
+                    </div>
+                    <div class="node-ports">
+                        <div class="port input" data-port="input"></div>
+                        <div class="port output" data-port="output"></div>
+                    </div>
+                </div>
+
+                <div class="canvas-node worker" style="left: 450px; top: 300px;" data-node-id="node-4">
+                    <div class="node-header">
+                        <span class="node-type-icon">⚙️</span>
+                        <span class="node-label">Worker-2</span>
+                        <span class="node-status idle"></span>
+                    </div>
+                    <div class="node-body">
+                        <div class="model-info">GPT-3.5</div>
+                        <div class="node-stats">
+                            <span class="stat">Idle</span>
+                        </div>
+                    </div>
+                    <div class="node-ports">
+                        <div class="port input" data-port="input"></div>
+                        <div class="port output" data-port="output"></div>
+                    </div>
+                </div>
+
+                <div class="canvas-node validator" style="left: 350px; top: 450px;" data-node-id="node-5">
+                    <div class="node-header">
+                        <span class="node-type-icon">✓</span>
+                        <span class="node-label">Validator-1</span>
+                        <span class="node-status active"></span>
+                    </div>
+                    <div class="node-body">
+                        <div class="model-info">Claude 3.5</div>
+                        <div class="node-stats">
+                            <span class="stat">Validating</span>
+                        </div>
+                    </div>
+                    <div class="node-ports">
+                        <div class="port input" data-port="input"></div>
+                        <div class="port output" data-port="output"></div>
+                    </div>
+                </div>
+
+                <!-- SVG for connections -->
+                <svg class="connections-layer" id="connectionsLayer">
+                    <line x1="200" y1="150" x2="350" y2="150" class="connection" />
+                    <line x1="450" y1="150" x2="350" y2="300" class="connection" />
+                    <line x1="450" y1="150" x2="550" y2="300" class="connection" />
+                    <line x1="350" y1="350" x2="450" y2="450" class="connection" />
+                </svg>
+            </div>
+
+            <!-- Input/Output Panel (Bottom) -->
+            <div class="io-panel">
+                <div class="io-section input-section">
+                    <h4>Input</h4>
+                    <textarea placeholder="Enter your task or query here..." class="io-textarea"></textarea>
+                    <button class="io-btn primary">Submit</button>
+                </div>
+                <div class="io-section output-section">
+                    <h4>Output</h4>
+                    <div class="output-content">
+                        <div class="output-message">
+                            <span class="output-label">Architect:</span>
+                            <p>Task has been analyzed and delegated to Broker-1...</p>
+                        </div>
+                        <div class="output-message">
+                            <span class="output-label">Worker-1:</span>
+                            <p>Processing subtask A... 60% complete</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar - Configuration Panel -->
+        <aside class="right-sidebar">
+            <h3>Node Configuration</h3>
+            <div class="config-panel" id="configPanel">
+                <p class="no-selection">Select a node to configure</p>
+            </div>
+        </aside>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
