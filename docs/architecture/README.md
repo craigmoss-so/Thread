@@ -71,6 +71,19 @@ Visual representation of all major operations:
 
 Use this to understand how the system operates end-to-end.
 
+### [UI_DESIGN.md](./UI_DESIGN.md)
+**Canvas interface and user experience design**
+
+Complete UI/UX specifications including:
+- Node card designs for all node types
+- Model selection dropdown with auto-detection
+- Interactive canvas interface
+- Real-time task monitoring
+- Configuration panels
+- User workflows and interaction patterns
+
+Essential for frontend development and understanding the user experience.
+
 ## Quick Start
 
 ### For System Architects
@@ -82,6 +95,11 @@ Use this to understand how the system operates end-to-end.
 1. Review [A2A_INTEGRATION.md](./A2A_INTEGRATION.md) for API patterns
 2. Reference [AGENT_CARDS.md](./AGENT_CARDS.md) for data schemas
 3. Implement using [OLLAMA_INTEGRATION.md](./OLLAMA_INTEGRATION.md)
+
+### For Frontend Developers
+1. Study [UI_DESIGN.md](./UI_DESIGN.md) for component specifications
+2. Review [ARCHITECTURE.md](./ARCHITECTURE.md) for system overview
+3. Reference [MESSAGE_FLOWS.md](./MESSAGE_FLOWS.md) for real-time updates
 
 ### For DevOps Engineers
 1. Check [OLLAMA_INTEGRATION.md](./OLLAMA_INTEGRATION.md) for deployment

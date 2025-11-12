@@ -368,6 +368,339 @@ class OllamaClient {
 module.exports = OllamaClient;
 ```
 
+## Model Detection for UI Dropdown
+
+### Detecting Available Models
+
+The Canvas UI needs to populate model dropdowns with locally available OLLAMA models. This is done by querying the OLLAMA API's `/api/tags` endpoint.
+
+#### API Endpoint
+
+```
+GET http://localhost:11434/api/tags
+```
+
+#### Response Format
+
+```json
+{
+  "models": [
+    {
+      "name": "llama3:70b",
+      "model": "llama3:70b",
+      "modified_at": "2025-01-15T10:30:00.000Z",
+      "size": 40000000000,
+      "digest": "sha256:abc123...",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "llama",
+        "families": ["llama"],
+        "parameter_size": "70B",
+        "quantization_level": "Q4_0"
+      }
+    },
+    {
+      "name": "codellama:13b",
+      "model": "codellama:13b",
+      "modified_at": "2025-01-15T09:15:00.000Z",
+      "size": 7400000000,
+      "digest": "sha256:def456...",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "llama",
+        "families": ["llama"],
+        "parameter_size": "13B",
+        "quantization_level": "Q4_0"
+      }
+    }
+  ]
+}
+```
+
+### Frontend Implementation
+
+#### React Hook for Model Detection
+
+```typescript
+import { useState, useEffect } from 'react';
+
+interface OllamaModel {
+  name: string;
+  size: number;
+  modified_at: string;
+  details: {
+    parameter_size: string;
+    family: string;
+  };
+}
+
+function useAvailableModels() {
+  const [models, setModels] = useState<OllamaModel[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchModels() {
+      try {
+        const response = await fetch('http://localhost:11434/api/tags');
+        if (!response.ok) {
+          throw new Error('OLLAMA server not available');
+        }
+        const data = await response.json();
+        setModels(data.models);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
+        setModels([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchModels();
+
+    // Refresh every 30 seconds in case user pulls new models
+    const interval = setInterval(fetchModels, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return { models, loading, error };
+}
+
+export default useAvailableModels;
+```
+
+#### Model Dropdown Component
+
+```typescript
+import React from 'react';
+import useAvailableModels from './useAvailableModels';
+
+interface ModelDropdownProps {
+  nodeType: 'architect' | 'broker' | 'worker' | 'validator';
+  selectedModel: string;
+  onModelChange: (model: string) => void;
+}
+
+function ModelDropdown({ nodeType, selectedModel, onModelChange }: ModelDropdownProps) {
+  const { models, loading, error } = useAvailableModels();
+
+  // Get recommended models for this node type
+  const recommendations = getRecommendedModels(nodeType);
+
+  if (loading) {
+    return (
+      <select disabled>
+        <option>Loading models...</option>
+      </select>
+    );
+  }
+
+  if (error) {
+    return (
+      <select disabled>
+        <option>OLLAMA not available</option>
+      </select>
+    );
+  }
+
+  if (models.length === 0) {
+    return (
+      <select disabled>
+        <option>No models installed</option>
+      </select>
+    );
+  }
+
+  return (
+    <select
+      value={selectedModel}
+      onChange={(e) => onModelChange(e.target.value)}
+      className="model-dropdown"
+    >
+      {models.map((model) => {
+        const isRecommended = recommendations.includes(model.name);
+        const sizeGB = (model.size / 1e9).toFixed(1);
+
+        return (
+          <option
+            key={model.name}
+            value={model.name}
+            className={isRecommended ? 'recommended' : ''}
+          >
+            {isRecommended ? '✓ ' : ''}
+            {model.name}
+            {` (${sizeGB}GB)`}
+          </option>
+        );
+      })}
+    </select>
+  );
+}
+
+// Helper function to get recommended models by node type
+function getRecommendedModels(nodeType: string): string[] {
+  const recommendations = {
+    architect: ['llama3:70b', 'llama3.1:70b', 'mixtral:8x7b'],
+    broker: ['mistral:7b', 'llama3:8b', 'phi3:medium'],
+    worker: ['codellama:13b', 'deepseek-coder:6.7b', 'llama3:8b'],
+    validator: ['llama3:70b', 'llama3.1:70b', 'mixtral:8x7b']
+  };
+
+  return recommendations[nodeType] || [];
+}
+
+export default ModelDropdown;
+```
+
+#### Backend Proxy (Optional)
+
+If the frontend can't directly access OLLAMA (CORS issues), create a backend proxy:
+
+```python
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+import httpx
+
+app = FastAPI()
+
+# Enable CORS for frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/api/ollama/models")
+async def get_available_models():
+    """Proxy request to OLLAMA to get available models"""
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get("http://localhost:11434/api/tags")
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPError as e:
+        raise HTTPException(
+            status_code=503,
+            detail="OLLAMA server not available"
+        )
+
+@app.get("/api/ollama/models/{model_name}")
+async def get_model_info(model_name: str):
+    """Get detailed info about a specific model"""
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "http://localhost:11434/api/show",
+                json={"name": model_name}
+            )
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPError:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Model {model_name} not found"
+        )
+```
+
+Then frontend calls:
+```typescript
+fetch('http://localhost:8000/api/ollama/models')
+```
+
+### Model Recommendations by Node Type
+
+The UI should highlight recommended models based on node type:
+
+```typescript
+const MODEL_RECOMMENDATIONS = {
+  architect: {
+    primary: ['llama3:70b', 'llama3.1:70b'],
+    alternatives: ['mixtral:8x7b'],
+    reason: 'High reasoning capability for task decomposition'
+  },
+  broker: {
+    primary: ['mistral:7b', 'llama3:8b'],
+    alternatives: ['phi3:medium'],
+    reason: 'Fast decision-making for worker selection'
+  },
+  worker: {
+    code: {
+      primary: ['codellama:13b', 'deepseek-coder:6.7b'],
+      alternatives: ['starcoder2:7b'],
+      reason: 'Optimized for code understanding'
+    },
+    general: {
+      primary: ['llama3:8b', 'mistral:7b'],
+      alternatives: [],
+      reason: 'General purpose task execution'
+    }
+  },
+  validator: {
+    primary: ['llama3:70b', 'llama3.1:70b'],
+    alternatives: ['mixtral:8x7b'],
+    reason: 'High accuracy for quality assessment'
+  }
+};
+```
+
+### Live Model Status
+
+Show real-time status of models:
+
+```typescript
+interface ModelStatus {
+  name: string;
+  loaded: boolean;
+  usedBy: string[];  // Node IDs using this model
+  memoryUsage: number;  // MB
+}
+
+async function getModelStatus(modelName: string): Promise<ModelStatus> {
+  // Check if model is currently loaded in OLLAMA
+  const response = await fetch('http://localhost:11434/api/ps');
+  const data = await response.json();
+
+  const loadedModel = data.models.find(m => m.name === modelName);
+
+  return {
+    name: modelName,
+    loaded: !!loadedModel,
+    usedBy: loadedModel?.used_by || [],
+    memoryUsage: loadedModel?.size_vram || 0
+  };
+}
+```
+
+### UI Enhancement: Model Info Tooltip
+
+Show detailed info on hover:
+
+```typescript
+function ModelOption({ model, isRecommended }: { model: OllamaModel, isRecommended: boolean }) {
+  return (
+    <option
+      value={model.name}
+      title={`
+        Model: ${model.name}
+        Size: ${(model.size / 1e9).toFixed(1)}GB
+        Family: ${model.details.family}
+        Parameters: ${model.details.parameter_size}
+        ${isRecommended ? '✓ Recommended for this node type' : ''}
+      `}
+    >
+      {isRecommended ? '✓ ' : ''}
+      {model.name}
+    </option>
+  );
+}
+```
+
+See [UI_DESIGN.md](./UI_DESIGN.md) for complete UI specifications including model dropdown designs.
+
 ## Node Configuration Examples
 
 ### Architect Node with OLLAMA

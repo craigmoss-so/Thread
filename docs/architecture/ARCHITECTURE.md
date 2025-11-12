@@ -143,6 +143,37 @@ Thread Node is a dynamic, self-organizing multi-agent AI system built on nodal a
 - Quality metrics reporting
 - Issue escalation
 
+## Canvas Interface & Model Selection
+
+### Visual Configuration
+
+Thread Node features an intuitive canvas interface where users can:
+- **Drag and drop** nodes onto the canvas
+- **Select models** via dropdown on each node card
+- **Configure node settings** through interactive cards
+- **Monitor task execution** in real-time
+- **Create connections** by dragging between nodes
+
+### Dynamic Model Assignment
+
+Each node card includes a **model dropdown** that:
+- **Auto-detects** locally available OLLAMA models
+- **Shows recommendations** based on node type (✓ marked)
+- **Displays model metadata** (size, RAM requirements)
+- **Allows live switching** between models
+- **Updates immediately** upon selection
+
+Example model dropdown on a Worker node:
+```
+Model: [codellama:13b       ▼]
+       [llama3:8b            ]
+       [mistral:7b           ]
+       ✓ codellama:13b       ← Recommended for code tasks
+       [deepseek-coder:6.7b  ]
+```
+
+See [UI_DESIGN.md](./UI_DESIGN.md) for complete interface specifications.
+
 ## Communication Protocol
 
 ### A2A Protocol Integration
@@ -234,3 +265,4 @@ Nodes can establish connections beyond predefined hierarchy:
 - [A2A Protocol Integration](./A2A_INTEGRATION.md)
 - [Message Flow Diagrams](./MESSAGE_FLOWS.md)
 - [OLLAMA Integration](./OLLAMA_INTEGRATION.md)
+- [UI Design & Canvas Interface](./UI_DESIGN.md)

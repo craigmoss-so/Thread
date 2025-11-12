@@ -18,7 +18,7 @@ Industry-standard agent-to-agent messaging with support from 150+ organizations 
 All LLM inference happens locally—no data leaves your infrastructure. No usage costs, no rate limits.
 
 ### 🎨 Visual Canvas Interface
-Intuitive drag-and-drop interface for configuring nodes, creating connections, and visualizing task flows in real-time.
+Intuitive drag-and-drop interface for configuring nodes, creating connections, and visualizing task flows in real-time. Each node card features a **model dropdown** to select from locally available OLLAMA models with smart recommendations.
 
 ### 🤝 Collaborative Agents
 Workers can request help from peers, share compute resources, and reorganize task strategies dynamically.
