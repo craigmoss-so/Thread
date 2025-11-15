@@ -12,9 +12,9 @@ Thread is an advanced AI orchestration system that allows you to:
 
 ## Current Status
 
-**Step 3: Dynamic Role Switching and Collaboration** - ✅ Complete
+**Steps 4 & 5: Validation Loops, Reputation System, and Agent Protocol** - ✅ Complete
 
-Self-organizing multi-agent network with worker collaboration, dynamic role switching, skill-based routing, and intelligent failure recovery.
+Advanced multi-agent network with formal agent-to-agent messaging protocol, reputation-based performance tracking, validator feedback loops, and real-time network health monitoring.
 
 ## Getting Started
 
@@ -44,8 +44,8 @@ npm start
 - [x] Step 1: Single-node prototype with basic UI
 - [x] Step 2: Multi-node canvas with connections and task delegation
 - [x] Step 3: Dynamic role switching and worker collaboration
-- [ ] Step 4: Validation nodes and feedback loops
-- [ ] Step 5: Reputation systems and advanced features
+- [x] Step 4: Validation nodes and feedback loops
+- [x] Step 5: Reputation systems and advanced features
 
 ## Features (Step 2)
 
@@ -104,3 +104,49 @@ npm start
 - Priority to workers with matching skills
 - Fallback to most versatile workers
 - Task-to-skill correlation scoring
+
+## Features (Steps 4 & 5)
+
+### Formal Agent-to-Agent Messaging Protocol
+- 11 structured message types for inter-node communication
+- Priority levels (URGENT, HIGH, NORMAL, LOW)
+- Complete message history tracking
+- Request/response patterns for collaboration
+- Message IDs for full audit trails
+
+### Reputation System
+- Performance tracking for every node
+- Success rate and collaboration metrics
+- 5-tier classification (Expert to Novice)
+- Skill-specific success rates
+- Network-wide health statistics
+- Top performer rankings
+
+### Performance-Based Routing
+- Collaborator selection based on reputation scores
+- Complementary skills matching
+- Historical performance consideration
+- Minimum reputation thresholds
+- Help history weighting
+
+### Validator Feedback Loops
+- Structured validation with detailed feedback
+- Issue identification and improvement suggestions
+- Retry with validator guidance
+- Multi-round validation support
+- Task clarity assessment
+
+### Client Clarification Requests
+- Ambiguity detection in task descriptions
+- Automated clarification question generation
+- Requirements refinement workflow
+- Clear specification enforcement
+
+### Network Health Monitoring
+- Real-time performance dashboard
+- Network health percentage
+- Task, collaboration, and role switch counters
+- Top performer visualization
+- Per-node reputation displays with progress bars
+- Recent message history view
+- Expandable analytics panel

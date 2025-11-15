@@ -1,13 +1,18 @@
 /**
  * Collaboration Service - Handles worker-to-worker collaboration and dynamic role switching
- * Implements advanced features from Step 3:
- * - Worker collaboration
+ * Implements advanced features from Steps 3-5:
+ * - Worker collaboration with formal messaging protocol
  * - Dynamic role flipping
  * - Failure detection and recovery
  * - Skill-based task routing
+ * - Reputation-based collaborator selection
+ * - Agent-to-agent communication
  */
 
 import { executeTask } from './apiService';
+import { requestHelp, offerHelp, messageHistory } from './messagingService';
+import { reputationManager } from './reputationService';
+import { validateWithFeedback, retryWithFeedback, assessTaskClarity } from './validationService';
 
 /**
  * Process task with collaboration and dynamic role switching
@@ -325,7 +330,7 @@ async function processWorkerWithCollaboration(
 }
 
 /**
- * Worker seeks help from other workers
+ * Worker seeks help from other workers - Enhanced with formal messaging and reputation
  */
 async function seekCollaboration(
   node,
@@ -336,7 +341,7 @@ async function seekCollaboration(
   attemptNumber,
   previousError
 ) {
-  // Find other available workers (not connected to this node, but in the network)
+  // Find other available workers
   const allWorkers = allNodes.filter(n => n.type === 'worker' && n.id !== node.id);
 
   if (allWorkers.length === 0) {
@@ -350,64 +355,131 @@ async function seekCollaboration(
     return { success: false };
   }
 
-  // Pick a collaborator (for now, just pick the first one; future: skill-based)
-  const collaborator = allWorkers[0];
+  // Use reputation system to find best collaborator
+  const rankedCollaborators = reputationManager.getBestCollaborators(
+    allWorkers,
+    node,
+    task
+  );
 
-  log.push({
-    nodeId: node.id,
-    nodeType: 'worker',
-    action: 'requesting_help',
-    message: `Worker ${node.id} requesting help from ${collaborator.id}`
-  });
+  // Try collaborators in order of reputation
+  for (const { worker: collaborator, reputation, complementarySkills } of rankedCollaborators) {
+    // Send formal help request message
+    const helpRequest = requestHelp(node, collaborator, task, {
+      reason: previousError,
+      attemptNumber,
+      errors: [previousError]
+    });
+    messageHistory.add(helpRequest);
 
-  log.push({
-    nodeId: collaborator.id,
-    nodeType: 'worker',
-    action: 'assisting_peer',
-    message: `Worker ${collaborator.id} assisting ${node.id}`,
-    collaboration: true
-  });
+    log.push({
+      nodeId: node.id,
+      nodeType: 'worker',
+      action: 'requesting_help_via_protocol',
+      message: `Worker ${node.id} sending help request to ${collaborator.id} (reputation: ${reputation.getScore().toFixed(2)}, complementary skills: ${complementarySkills.join(', ') || 'none'})`,
+      messageId: helpRequest.id,
+      protocol: true
+    });
 
-  try {
-    const result = await executeTask(
-      collaborator.config,
-      `Help with this task (previous attempt failed: ${previousError}): ${task}`
+    // Collaborator evaluates request and responds
+    const canHelp = collaborator.config.canCollaborate !== false &&
+                    reputation.getScore() > 0.3; // Minimum reputation threshold
+
+    const helpOffer = offerHelp(helpRequest, collaborator, canHelp,
+      canHelp
+        ? `I can help with this task (skills: ${collaborator.config.skills?.join(', ') || 'general'})`
+        : 'Unable to assist at this time'
     );
+    messageHistory.add(helpOffer);
 
-    if (result.success) {
+    if (!canHelp) {
       log.push({
         nodeId: collaborator.id,
         nodeType: 'worker',
-        action: 'collaboration_success',
-        message: `Worker ${collaborator.id} successfully assisted ${node.id}`,
-        success: true,
-        collaboration: true
+        action: 'declined_help',
+        message: `Worker ${collaborator.id} declined to help`,
+        messageId: helpOffer.id
       });
-
-      return {
-        success: true,
-        data: result.data,
-        collaborationLog: log,
-        executedBy: collaborator.id,
-        assistedBy: collaborator.id,
-        originalWorker: node.id,
-        roleSwitch: false
-      };
+      continue; // Try next collaborator
     }
 
-    return { success: false };
-  } catch (error) {
     log.push({
       nodeId: collaborator.id,
       nodeType: 'worker',
-      action: 'collaboration_failed',
-      message: `Worker ${collaborator.id} also failed: ${error.message}`,
-      success: false,
-      collaboration: true
+      action: 'accepting_help_request',
+      message: `Worker ${collaborator.id} accepting help request`,
+      collaboration: true,
+      messageId: helpOffer.id
     });
 
-    return { success: false };
+    try {
+      const startTime = Date.now();
+      const result = await executeTask(
+        collaborator.config,
+        `Help with this task (previous attempt by ${node.id} failed: ${previousError}): ${task}`
+      );
+      const duration = Date.now() - startTime;
+
+      if (result.success) {
+        // Record successful collaboration in reputation system
+        reputationManager.recordCollaboration(node.id, true, false); // Received help
+        reputationManager.recordCollaboration(collaborator.id, true, true); // Provided help
+        reputationManager.recordTaskResult(collaborator.id, true, duration, collaborator.config.skills || []);
+
+        log.push({
+          nodeId: collaborator.id,
+          nodeType: 'worker',
+          action: 'collaboration_success',
+          message: `Worker ${collaborator.id} successfully assisted ${node.id}`,
+          success: true,
+          collaboration: true,
+          duration: `${duration}ms`
+        });
+
+        return {
+          success: true,
+          data: result.data,
+          collaborationLog: log,
+          executedBy: collaborator.id,
+          assistedBy: collaborator.id,
+          originalWorker: node.id,
+          roleSwitch: false,
+          messageHistory: [helpRequest.id, helpOffer.id]
+        };
+      }
+
+      // Collaboration failed, record and try next
+      reputationManager.recordCollaboration(node.id, false, false);
+      reputationManager.recordCollaboration(collaborator.id, false, true);
+      reputationManager.recordTaskResult(collaborator.id, false, duration, collaborator.config.skills || []);
+
+    } catch (error) {
+      log.push({
+        nodeId: collaborator.id,
+        nodeType: 'worker',
+        action: 'collaboration_failed',
+        message: `Worker ${collaborator.id} also failed: ${error.message}`,
+        success: false,
+        collaboration: true
+      });
+
+      // Record failed collaboration
+      reputationManager.recordCollaboration(node.id, false, false);
+      reputationManager.recordCollaboration(collaborator.id, false, true);
+
+      // Continue to next collaborator
+    }
   }
+
+  // All collaborators failed or declined
+  log.push({
+    nodeId: node.id,
+    nodeType: 'worker',
+    action: 'all_collaborators_failed',
+    message: 'All available collaborators either declined or failed to help'
+  });
+
+  return { success: false };
 }
 
 /**

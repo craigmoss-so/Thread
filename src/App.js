@@ -5,6 +5,7 @@ import ConfigPanel from './components/ConfigPanel';
 import TaskPanel from './components/TaskPanel';
 import OutputPanel from './components/OutputPanel';
 import NodeToolbar from './components/NodeToolbar';
+import NetworkStats from './components/NetworkStats';
 import { executeTask as apiExecuteTask, transformData } from './services/apiService';
 import { delegateTask } from './services/delegationService';
 import { processWithCollaboration } from './services/collaborationService';
@@ -242,6 +243,7 @@ function App() {
         </div>
 
         <div className="right-panel">
+          <NetworkStats nodes={nodes} />
           <ConfigPanel
             node={selectedNode}
             onUpdate={(config) => handleNodeUpdate(selectedNodeId, config)}
