@@ -6,6 +6,7 @@ import TaskPanel from './components/TaskPanel';
 import OutputPanel from './components/OutputPanel';
 import NodeToolbar from './components/NodeToolbar';
 import NetworkStats from './components/NetworkStats';
+import FederatedPanel from './components/FederatedPanel';
 import { executeTask as apiExecuteTask, transformData } from './services/apiService';
 import { delegateTask } from './services/delegationService';
 import { processWithCollaboration } from './services/collaborationService';
@@ -243,6 +244,7 @@ function App() {
         </div>
 
         <div className="right-panel">
+          <FederatedPanel nodes={nodes} />
           <NetworkStats nodes={nodes} />
           <ConfigPanel
             node={selectedNode}

@@ -13,6 +13,7 @@ import { executeTask } from './apiService';
 import { requestHelp, offerHelp, messageHistory } from './messagingService';
 import { reputationManager } from './reputationService';
 import { validateWithFeedback, retryWithFeedback, assessTaskClarity } from './validationService';
+import { getRemoteTaskManager, isRemoteHelpAvailable } from './remoteTaskService';
 
 /**
  * Process task with collaboration and dynamic role switching
@@ -471,13 +472,72 @@ async function seekCollaboration(
     }
   }
 
-  // All collaborators failed or declined
+  // All local collaborators failed or declined
   log.push({
     nodeId: node.id,
     nodeType: 'worker',
-    action: 'all_collaborators_failed',
-    message: 'All available collaborators either declined or failed to help'
+    action: 'all_local_collaborators_failed',
+    message: 'All local collaborators either declined or failed to help'
   });
+
+  // Try remote help from peer Threads as final fallback
+  const skills = node.config.skills || [];
+  if (isRemoteHelpAvailable(skills)) {
+    log.push({
+      nodeId: node.id,
+      nodeType: 'worker',
+      action: 'seeking_remote_help',
+      message: `No local help available, seeking assistance from peer Thread instances`,
+      federated: true
+    });
+
+    try {
+      const remoteManager = getRemoteTaskManager();
+      const remoteResult = await remoteManager.findAndRequestHelpWithFallback(
+        task,
+        skills,
+        2 // Try up to 2 remote peers
+      );
+
+      if (remoteResult.success) {
+        // Record successful remote collaboration
+        reputationManager.recordCollaboration(node.id, true, false);
+
+        log.push({
+          nodeId: 'remote-thread',
+          nodeType: 'worker',
+          action: 'remote_collaboration_success',
+          message: `Remote Thread (${remoteResult.peerThread}) successfully assisted ${node.id}`,
+          success: true,
+          collaboration: true,
+          federated: true
+        });
+
+        return {
+          success: true,
+          data: remoteResult.data,
+          collaborationLog: log,
+          executedBy: remoteResult.executedBy,
+          assistedBy: remoteResult.peerThread,
+          originalWorker: node.id,
+          roleSwitch: false,
+          remote: true,
+          federatedCollaboration: true
+        };
+      }
+    } catch (remoteError) {
+      log.push({
+        nodeId: node.id,
+        nodeType: 'worker',
+        action: 'remote_help_failed',
+        message: `Remote help also failed: ${remoteError.message}`,
+        federated: true
+      });
+
+      // Record failed remote attempt
+      reputationManager.recordCollaboration(node.id, false, false);
+    }
+  }
 
   return { success: false };
 }

@@ -12,6 +12,10 @@ Thread is an advanced AI orchestration system that allows you to:
 
 ## Current Status
 
+**Step 6: Federated Thread Networks** - ✅ Foundation Complete
+
+Decentralized peer-to-peer Thread networking enabling multiple Thread instances to discover, connect, and collaborate. Workers can now request help from workers in other Thread instances, creating a truly distributed AI collaboration network.
+
 **Steps 4 & 5: Validation Loops, Reputation System, and Agent Protocol** - ✅ Complete
 
 Advanced multi-agent network with formal agent-to-agent messaging protocol, reputation-based performance tracking, validator feedback loops, and real-time network health monitoring.
@@ -46,6 +50,7 @@ npm start
 - [x] Step 3: Dynamic role switching and worker collaboration
 - [x] Step 4: Validation nodes and feedback loops
 - [x] Step 5: Reputation systems and advanced features
+- [x] Step 6: Federated Thread networks (foundation)
 
 ## Features (Step 2)
 
@@ -150,3 +155,49 @@ npm start
 - Per-node reputation displays with progress bars
 - Recent message history view
 - Expandable analytics panel
+
+## Features (Step 6)
+
+### Thread Identity System
+- Unique Thread ID generation
+- Persistent display names
+- Protocol versioning
+- Thread manifest creation and sharing
+- LocalStorage persistence
+
+### Peer Discovery and Management
+- Manual peer addition via manifest sharing
+- Peer connection lifecycle management
+- Real-time peer status tracking (connected/disconnected/error)
+- Peer capability discovery
+- Skill-based peer filtering
+
+### Federated Collaboration
+- Remote worker delegation to peer Threads
+- Automatic fallback to remote help when local collaboration fails
+- Reputation-based peer selection
+- Complementary skill matching across Threads
+- Remote task request/response protocol
+
+### Cross-Thread Reputation
+- Local reputation tracking per peer
+- Combined reputation scoring (reported + local assessment)
+- Peer performance history
+- Task completion statistics per peer
+- Reputation-based peer ranking
+
+### Federation UI Dashboard
+- Thread identity management
+- Connected peers list with detailed stats
+- Peer reputation visualization
+- Remote task performance metrics
+- Network statistics overview
+- Test connection functionality
+- Manifest copy/share interface
+
+### Distributed Task Routing
+- Multi-peer fallback with ranked attempts
+- Skill availability checking across network
+- Remote request success rate tracking
+- Average response time monitoring
+- Federated collaboration logging
