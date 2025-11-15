@@ -7,6 +7,7 @@ import OutputPanel from './components/OutputPanel';
 import NodeToolbar from './components/NodeToolbar';
 import { executeTask as apiExecuteTask, transformData } from './services/apiService';
 import { delegateTask } from './services/delegationService';
+import { processWithCollaboration } from './services/collaborationService';
 
 function App() {
   const [nodes, setNodes] = useState([
@@ -28,8 +29,12 @@ function App() {
         systemParams: {
           resourceLimits: { memory: '2GB', cpu: '2 cores' },
           loggingLevel: 'info',
-          dataTransformationRules: []
-        }
+          dataTransformationRules: [],
+          maxRetries: 3
+        },
+        skills: [],
+        canCollaborate: true,
+        canLead: true
       }
     }
   ]);
@@ -63,9 +68,12 @@ function App() {
         systemParams: {
           resourceLimits: { memory: '2GB', cpu: '2 cores' },
           loggingLevel: 'info',
-          dataTransformationRules: []
+          dataTransformationRules: [],
+          maxRetries: 3
         },
-        skills: [] // Skills this node can perform
+        skills: [], // Skills this node can perform
+        canCollaborate: true, // Can request help from other workers
+        canLead: true // Can become temporary architect if needed
       }
     };
     setNodes([...nodes, newNode]);
@@ -135,34 +143,30 @@ function App() {
     setTaskInput(task);
 
     try {
-      // Check if node has connections - if so, use delegation
-      const hasConnections = connections.some(
-        conn => conn.from === selectedNodeId
+      // Use collaboration system (includes delegation + collaboration + role switching)
+      const collaborationResult = await processWithCollaboration(
+        selectedNode,
+        task,
+        nodes,
+        connections,
+        1 // Initial attempt number
       );
 
-      let result;
-      if (hasConnections && selectedNode.type !== 'worker') {
-        // Use delegation system for connected nodes
-        const delegationResult = await delegateTask(
-          selectedNode,
-          task,
-          nodes,
-          connections
-        );
-
-        result = {
-          error: !delegationResult.success,
-          message: delegationResult.data || delegationResult.error,
-          task: task,
-          node: selectedNode.id,
-          executedBy: delegationResult.executedBy,
-          delegationLog: delegationResult.delegationLog,
-          timestamp: new Date().toISOString()
-        };
-      } else {
-        // Execute directly on selected node
-        result = await executeTask(selectedNode, task);
-      }
+      const result = {
+        error: !collaborationResult.success,
+        message: collaborationResult.data || collaborationResult.error,
+        task: task,
+        node: selectedNode.id,
+        executedBy: collaborationResult.executedBy,
+        delegationLog: collaborationResult.collaborationLog || [],
+        roleSwitch: collaborationResult.roleSwitch,
+        assistedBy: collaborationResult.assistedBy,
+        originalWorker: collaborationResult.originalWorker,
+        originalRole: collaborationResult.originalRole,
+        newRole: collaborationResult.newRole,
+        validated: collaborationResult.validated,
+        timestamp: new Date().toISOString()
+      };
 
       setOutput(result);
     } catch (error) {

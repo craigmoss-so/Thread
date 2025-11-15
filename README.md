@@ -12,9 +12,9 @@ Thread is an advanced AI orchestration system that allows you to:
 
 ## Current Status
 
-**Step 2: Multi-Node Canvas with Task Delegation** - ✅ Complete
+**Step 3: Dynamic Role Switching and Collaboration** - ✅ Complete
 
-Full multi-node canvas with drag-and-drop, visual connections, and hierarchical task delegation system.
+Self-organizing multi-agent network with worker collaboration, dynamic role switching, skill-based routing, and intelligent failure recovery.
 
 ## Getting Started
 
@@ -43,7 +43,7 @@ npm start
 - [x] Design and conceptual planning
 - [x] Step 1: Single-node prototype with basic UI
 - [x] Step 2: Multi-node canvas with connections and task delegation
-- [ ] Step 3: Dynamic role switching and worker collaboration
+- [x] Step 3: Dynamic role switching and worker collaboration
 - [ ] Step 4: Validation nodes and feedback loops
 - [ ] Step 5: Reputation systems and advanced features
 
@@ -72,3 +72,35 @@ npm start
 - Node-specific status indicators
 - Connection count display
 - Real-time task routing visibility
+
+## Features (Step 3)
+
+### Skills System
+- Define node capabilities via comma-separated skills
+- Intelligent skill-based task routing by brokers
+- Skill matching for optimal worker selection
+- Visual skill display in delegation log
+
+### Worker Collaboration
+- Workers request help from peers when stuck
+- Configurable collaboration behavior per node
+- Collaboration attempts tracked in delegation log
+- Success attribution to both workers
+
+### Dynamic Role Switching
+- Workers become temporary architects when needed
+- Triggered after exhausting retry attempts
+- Re-frames problems for alternative solutions
+- Role switches visible in output with special badge
+
+### Intelligent Failure Recovery
+- Configurable retry attempts (0-10)
+- Progressive escalation: retry → collaborate → role switch
+- Failure context passed to collaborating workers
+- Detailed failure tracking in logs
+
+### Enhanced Routing
+- Keyword-based skill matching
+- Priority to workers with matching skills
+- Fallback to most versatile workers
+- Task-to-skill correlation scoring

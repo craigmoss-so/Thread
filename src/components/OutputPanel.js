@@ -95,6 +95,28 @@ const OutputPanel = ({ output, isProcessing }) => {
                         <span className="value">{output.executedBy}</span>
                       </div>
                     )}
+                    {output.assistedBy && (
+                      <div className="metadata-item">
+                        <span className="label">Assisted by:</span>
+                        <span className="value collaboration-badge">
+                          {output.assistedBy} (Collaboration)
+                        </span>
+                      </div>
+                    )}
+                    {output.roleSwitch && (
+                      <div className="metadata-item">
+                        <span className="label">Role Switch:</span>
+                        <span className="value role-switch-badge">
+                          {output.originalRole || 'worker'} → {output.newRole || 'architect'}
+                        </span>
+                      </div>
+                    )}
+                    {output.validated && (
+                      <div className="metadata-item">
+                        <span className="label">Validation:</span>
+                        <span className="value validation-badge">Independently Verified</span>
+                      </div>
+                    )}
                     {output.task && (
                       <div className="metadata-item">
                         <span className="label">Task:</span>

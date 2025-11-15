@@ -180,6 +180,60 @@ const ConfigPanel = ({ node, onUpdate }) => {
             </select>
             <span className="help-text">Verbosity of logging output</span>
           </div>
+
+          <div className="form-group">
+            <label>Max Retry Attempts</label>
+            <input
+              type="number"
+              value={config.systemParams?.maxRetries || 3}
+              onChange={(e) => handleChange('systemParams.maxRetries', parseInt(e.target.value))}
+              min="0"
+              max="10"
+            />
+            <span className="help-text">Number of retries before escalation</span>
+          </div>
+        </div>
+
+        <div className="config-section">
+          <h3>Skills & Capabilities</h3>
+          <span className="help-text" style={{ display: 'block', marginBottom: '1rem' }}>
+            Define what this node can do. Used for intelligent task routing.
+          </span>
+
+          <div className="form-group">
+            <label>Skills (comma-separated)</label>
+            <input
+              type="text"
+              value={config.skills?.join(', ') || ''}
+              onChange={(e) => handleChange('skills', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+              placeholder="e.g., coding, documentation, testing, analysis"
+            />
+            <span className="help-text">List skills this node excels at</span>
+          </div>
+
+          <div className="form-group">
+            <label>Can Collaborate</label>
+            <select
+              value={config.canCollaborate !== undefined ? config.canCollaborate.toString() : 'true'}
+              onChange={(e) => handleChange('canCollaborate', e.target.value === 'true')}
+            >
+              <option value="true">Yes - Can request help from other workers</option>
+              <option value="false">No - Works independently</option>
+            </select>
+            <span className="help-text">Allow this node to collaborate with peers</span>
+          </div>
+
+          <div className="form-group">
+            <label>Can Lead</label>
+            <select
+              value={config.canLead !== undefined ? config.canLead.toString() : 'true'}
+              onChange={(e) => handleChange('canLead', e.target.value === 'true')}
+            >
+              <option value="true">Yes - Can become temporary architect</option>
+              <option value="false">No - Never takes lead role</option>
+            </select>
+            <span className="help-text">Allow dynamic role switching when needed</span>
+          </div>
         </div>
 
         <div className="config-actions">

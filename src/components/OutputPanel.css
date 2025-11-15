@@ -202,3 +202,31 @@
   color: #e0e0e0;
   line-height: 1.4;
 }
+
+/* Collaboration Badges */
+.collaboration-badge {
+  background: rgba(79, 172, 254, 0.2) !important;
+  border: 1px solid #4facfe !important;
+  color: #4facfe !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 3px !important;
+  font-weight: 600 !important;
+}
+
+.role-switch-badge {
+  background: rgba(240, 147, 251, 0.2) !important;
+  border: 1px solid #f093fb !important;
+  color: #f093fb !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 3px !important;
+  font-weight: 600 !important;
+}
+
+.validation-badge {
+  background: rgba(67, 233, 123, 0.2) !important;
+  border: 1px solid #43e97b !important;
+  color: #43e97b !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 3px !important;
+  font-weight: 600 !important;
+}
