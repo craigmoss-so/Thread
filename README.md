@@ -12,9 +12,9 @@ Thread is an advanced AI orchestration system that allows you to:
 
 ## Current Status
 
-**Step 1: Single-Node Prototype** - In Development
+**Step 2: Multi-Node Canvas with Task Delegation** - ✅ Complete
 
-Building the basic single-node implementation with UI, configuration panel, and task execution.
+Full multi-node canvas with drag-and-drop, visual connections, and hierarchical task delegation system.
 
 ## Getting Started
 
@@ -41,8 +41,34 @@ npm start
 ## Development Roadmap
 
 - [x] Design and conceptual planning
-- [ ] Step 1: Single-node prototype with basic UI
-- [ ] Step 2: Multi-node canvas with connections
-- [ ] Step 3: Task delegation and execution
-- [ ] Step 4: Dynamic role switching
-- [ ] Step 5: Validation and reputation systems
+- [x] Step 1: Single-node prototype with basic UI
+- [x] Step 2: Multi-node canvas with connections and task delegation
+- [ ] Step 3: Dynamic role switching and worker collaboration
+- [ ] Step 4: Validation nodes and feedback loops
+- [ ] Step 5: Reputation systems and advanced features
+
+## Features (Step 2)
+
+### Multi-Node Management
+- Add nodes of different types (Architect, Broker, Worker, Validator)
+- Drag-and-drop positioning on canvas
+- Delete nodes with automatic connection cleanup
+- Visual indicators for node types with color coding
+
+### Connection System
+- Click-to-connect interface between nodes
+- Visual connection lines with arrows
+- Delete connections by clicking
+- Real-time connection status display
+
+### Task Delegation
+- **Architect → Broker → Worker** flow
+- Automatic routing based on node connections
+- Delegation log showing task flow through network
+- Support for both delegated and direct execution
+
+### Workflow Visualization
+- Live delegation log in output panel
+- Node-specific status indicators
+- Connection count display
+- Real-time task routing visibility

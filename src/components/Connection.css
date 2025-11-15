@@ -1,0 +1,30 @@
+.connection {
+  pointer-events: all;
+}
+
+.connection-path {
+  transition: stroke-width 0.2s;
+}
+
+.connection:hover .connection-path {
+  stroke-width: 3;
+  stroke: #764ba2;
+}
+
+.connection-hitbox {
+  cursor: pointer;
+}
+
+.connection-label {
+  fill: #999;
+  font-size: 0.75rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  text-anchor: middle;
+  pointer-events: none;
+  user-select: none;
+}
+
+.connection:hover .connection-label {
+  fill: #e0e0e0;
+}

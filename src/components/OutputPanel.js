@@ -8,6 +8,16 @@ const OutputPanel = ({ output, isProcessing }) => {
     return date.toLocaleString();
   };
 
+  const getNodeTypeIcon = (type) => {
+    const icons = {
+      architect: '🏗️',
+      broker: '🔀',
+      worker: '⚙️',
+      validator: '✓'
+    };
+    return icons[type] || '●';
+  };
+
   return (
     <div className="output-panel">
       <div className="panel-header">
@@ -50,6 +60,23 @@ const OutputPanel = ({ output, isProcessing }) => {
                   {output.message}
                 </div>
 
+                {output.delegationLog && output.delegationLog.length > 0 && (
+                  <div className="delegation-log">
+                    <h4>Delegation Flow</h4>
+                    <div className="log-entries">
+                      {output.delegationLog.map((entry, index) => (
+                        <div key={index} className={`log-entry ${entry.nodeType}`}>
+                          <span className="log-icon">{getNodeTypeIcon(entry.nodeType)}</span>
+                          <div className="log-details">
+                            <div className="log-node">{entry.nodeId}</div>
+                            <div className="log-message">{entry.message}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {output.timestamp && (
                   <div className="output-metadata">
                     <div className="metadata-item">
@@ -58,8 +85,14 @@ const OutputPanel = ({ output, isProcessing }) => {
                     </div>
                     {output.node && (
                       <div className="metadata-item">
-                        <span className="label">Node:</span>
+                        <span className="label">Started by:</span>
                         <span className="value">{output.node}</span>
+                      </div>
+                    )}
+                    {output.executedBy && output.executedBy !== output.node && (
+                      <div className="metadata-item">
+                        <span className="label">Executed by:</span>
+                        <span className="value">{output.executedBy}</span>
                       </div>
                     )}
                     {output.task && (

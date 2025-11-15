@@ -4,7 +4,9 @@ import Canvas from './components/Canvas';
 import ConfigPanel from './components/ConfigPanel';
 import TaskPanel from './components/TaskPanel';
 import OutputPanel from './components/OutputPanel';
+import NodeToolbar from './components/NodeToolbar';
 import { executeTask as apiExecuteTask, transformData } from './services/apiService';
+import { delegateTask } from './services/delegationService';
 
 function App() {
   const [nodes, setNodes] = useState([
@@ -32,15 +34,70 @@ function App() {
     }
   ]);
 
+  const [connections, setConnections] = useState([]);
   const [selectedNodeId, setSelectedNodeId] = useState('node-1');
   const [taskInput, setTaskInput] = useState('');
   const [output, setOutput] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [nodeCounter, setNodeCounter] = useState(2);
 
   const selectedNode = nodes.find(node => node.id === selectedNodeId);
 
+  // Node management functions
+  const handleAddNode = (type) => {
+    const newNode = {
+      id: `node-${nodeCounter}`,
+      type: type,
+      position: { x: 100 + (nodeCounter * 30), y: 100 + (nodeCounter * 30) },
+      config: {
+        delegationId: '',
+        primaryModel: { provider: 'openai', model: 'gpt-4' },
+        secondaryModels: [],
+        modelParams: {
+          temperature: 0.7,
+          top_p: 1.0,
+          n: 1,
+          max_tokens: 2000,
+          seed: null
+        },
+        systemParams: {
+          resourceLimits: { memory: '2GB', cpu: '2 cores' },
+          loggingLevel: 'info',
+          dataTransformationRules: []
+        },
+        skills: [] // Skills this node can perform
+      }
+    };
+    setNodes([...nodes, newNode]);
+    setNodeCounter(nodeCounter + 1);
+    setSelectedNodeId(newNode.id);
+  };
+
   const handleNodeClick = (nodeId) => {
     setSelectedNodeId(nodeId);
+  };
+
+  const handleNodeDrag = (nodeId, newPosition) => {
+    setNodes(nodes.map(node =>
+      node.id === nodeId
+        ? { ...node, position: newPosition }
+        : node
+    ));
+  };
+
+  const handleNodeDelete = (nodeId) => {
+    // Remove node
+    setNodes(nodes.filter(node => node.id !== nodeId));
+
+    // Remove connections involving this node
+    setConnections(connections.filter(
+      conn => conn.from !== nodeId && conn.to !== nodeId
+    ));
+
+    // Update selected node if necessary
+    if (selectedNodeId === nodeId) {
+      setSelectedNodeId(nodes.find(n => n.id !== nodeId)?.id || null);
+    }
   };
 
   const handleNodeUpdate = (nodeId, updatedConfig) => {
@@ -51,13 +108,62 @@ function App() {
     ));
   };
 
+  // Connection management
+  const handleConnectionCreate = (fromNodeId, toNodeId) => {
+    // Check if connection already exists
+    const exists = connections.some(
+      conn => conn.from === fromNodeId && conn.to === toNodeId
+    );
+
+    if (!exists && fromNodeId !== toNodeId) {
+      const newConnection = {
+        id: `conn-${connections.length + 1}`,
+        from: fromNodeId,
+        to: toNodeId,
+        label: ''
+      };
+      setConnections([...connections, newConnection]);
+    }
+  };
+
+  const handleConnectionDelete = (connectionId) => {
+    setConnections(connections.filter(conn => conn.id !== connectionId));
+  };
+
   const handleTaskSubmit = async (task) => {
     setIsProcessing(true);
     setTaskInput(task);
 
     try {
-      // Task execution will be implemented here
-      const result = await executeTask(selectedNode, task);
+      // Check if node has connections - if so, use delegation
+      const hasConnections = connections.some(
+        conn => conn.from === selectedNodeId
+      );
+
+      let result;
+      if (hasConnections && selectedNode.type !== 'worker') {
+        // Use delegation system for connected nodes
+        const delegationResult = await delegateTask(
+          selectedNode,
+          task,
+          nodes,
+          connections
+        );
+
+        result = {
+          error: !delegationResult.success,
+          message: delegationResult.data || delegationResult.error,
+          task: task,
+          node: selectedNode.id,
+          executedBy: delegationResult.executedBy,
+          delegationLog: delegationResult.delegationLog,
+          timestamp: new Date().toISOString()
+        };
+      } else {
+        // Execute directly on selected node
+        result = await executeTask(selectedNode, task);
+      }
+
       setOutput(result);
     } catch (error) {
       setOutput({
@@ -114,10 +220,16 @@ function App() {
 
       <div className="main-container">
         <div className="left-panel">
+          <NodeToolbar onAddNode={handleAddNode} />
           <Canvas
             nodes={nodes}
+            connections={connections}
             selectedNodeId={selectedNodeId}
             onNodeClick={handleNodeClick}
+            onNodeDrag={handleNodeDrag}
+            onNodeDelete={handleNodeDelete}
+            onConnectionCreate={handleConnectionCreate}
+            onConnectionDelete={handleConnectionDelete}
           />
           <TaskPanel
             onTaskSubmit={handleTaskSubmit}
