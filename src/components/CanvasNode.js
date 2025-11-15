@@ -81,10 +81,10 @@ const CanvasNode = ({ node, isSelected, onClick, onDrag, onDelete, onConnectionS
   return (
     <div
       className={`canvas-node ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''}`}
+      data-type={node.type}
       style={{
         left: `${node.position.x}px`,
-        top: `${node.position.y}px`,
-        borderColor: getNodeColor(node.type)
+        top: `${node.position.y}px`
       }}
       onClick={onClick}
       onMouseDown={handleMouseDown}
@@ -97,7 +97,7 @@ const CanvasNode = ({ node, isSelected, onClick, onDrag, onDelete, onConnectionS
         ⚡
       </div>
 
-      <div className="node-icon" style={{ backgroundColor: getNodeColor(node.type) }}>
+      <div className="node-icon">
         {getNodeIcon(node.type)}
       </div>
       <div className="node-content">
