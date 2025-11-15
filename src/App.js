@@ -7,6 +7,10 @@ import OutputPanel from './components/OutputPanel';
 import NodeToolbar from './components/NodeToolbar';
 import NetworkStats from './components/NetworkStats';
 import FederatedPanel from './components/FederatedPanel';
+import NetworkTopology from './components/NetworkTopology';
+import ActivityFeed from './components/ActivityFeed';
+import TaskParticles from './components/TaskParticles';
+import IntroAnimation from './components/IntroAnimation';
 import { executeTask as apiExecuteTask, transformData } from './services/apiService';
 import { delegateTask } from './services/delegationService';
 import { processWithCollaboration } from './services/collaborationService';
@@ -219,6 +223,14 @@ function App() {
 
   return (
     <div className="App">
+      <IntroAnimation />
+
+      <TaskParticles
+        isProcessing={isProcessing}
+        executingNodeId={selectedNodeId}
+        nodes={nodes}
+      />
+
       <header className="App-header">
         <h1>Thread Node</h1>
         <p className="subtitle">Multi-Agent AI Orchestration</p>
@@ -244,7 +256,9 @@ function App() {
         </div>
 
         <div className="right-panel">
+          <NetworkTopology nodes={nodes} />
           <FederatedPanel nodes={nodes} />
+          <ActivityFeed output={output} isProcessing={isProcessing} />
           <NetworkStats nodes={nodes} />
           <ConfigPanel
             node={selectedNode}
