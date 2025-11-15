@@ -1,0 +1,72 @@
+.error-boundary {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a1a;
+  padding: 2rem;
+}
+
+.error-container {
+  max-width: 600px;
+  background: #2a2a2a;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  border: 1px solid #fa5252;
+}
+
+.error-container h1 {
+  color: #fa5252;
+  margin-bottom: 1rem;
+}
+
+.error-message {
+  color: #e0e0e0;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: rgba(250, 82, 82, 0.1);
+  border-radius: 4px;
+  border: 1px solid rgba(250, 82, 82, 0.3);
+}
+
+.error-details {
+  margin-bottom: 1.5rem;
+}
+
+.error-details summary {
+  cursor: pointer;
+  color: #999;
+  margin-bottom: 0.5rem;
+  user-select: none;
+}
+
+.error-details summary:hover {
+  color: #e0e0e0;
+}
+
+.error-details pre {
+  background: #1a1a1a;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  color: #bbb;
+  font-size: 0.85rem;
+}
+
+.btn-reset {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-reset:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}

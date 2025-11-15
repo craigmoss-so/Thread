@@ -1,0 +1,57 @@
+.canvas-node {
+  position: absolute;
+  width: 200px;
+  background: #1a1a1a;
+  border: 2px solid #667eea;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.canvas-node:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.canvas-node.selected {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+  transform: translateY(-2px);
+}
+
+.node-icon {
+  width: 100%;
+  padding: 1rem;
+  text-align: center;
+  font-size: 2rem;
+  background: #667eea;
+  border-radius: 6px 6px 0 0;
+}
+
+.node-content {
+  padding: 1rem;
+}
+
+.node-title {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #e0e0e0;
+  margin-bottom: 0.5rem;
+}
+
+.node-type {
+  font-size: 0.85rem;
+  color: #999;
+  text-transform: capitalize;
+  margin-bottom: 0.5rem;
+}
+
+.node-model {
+  font-size: 0.75rem;
+  color: #666;
+  font-family: monospace;
+  background: #0a0a0a;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
