@@ -1,0 +1,315 @@
+.canvas-node {
+  position: absolute;
+  width: 220px;
+  background: rgba(26, 27, 38, 0.85);
+  backdrop-filter: blur(20px);
+  border: 2px solid rgba(102, 126, 234, 0.3);
+  border-radius: 16px;
+  cursor: move;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  user-select: none;
+  overflow: hidden;
+}
+
+.canvas-node::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.05) 0%,
+    transparent 50%,
+    rgba(240, 147, 251, 0.05) 100%
+  );
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.canvas-node:hover::before {
+  opacity: 1;
+}
+
+.canvas-node:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 0 1px rgba(102, 126, 234, 0.4),
+    0 0 40px rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.6);
+}
+
+.canvas-node.selected {
+  box-shadow:
+    0 0 0 3px rgba(102, 126, 234, 0.4),
+    0 12px 48px rgba(102, 126, 234, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-4px) scale(1.02);
+  border-color: rgba(102, 126, 234, 0.8);
+}
+
+.canvas-node.selected::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(240, 147, 251, 0.3));
+  z-index: -1;
+  animation: selectedPulse 2s ease-in-out infinite;
+}
+
+@keyframes selectedPulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.canvas-node.dragging {
+  opacity: 0.9;
+  cursor: grabbing;
+  transform: scale(1.08);
+  z-index: 1000;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.7),
+    0 0 60px rgba(102, 126, 234, 0.4);
+}
+
+.node-delete {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(250, 82, 82, 0.9), rgba(235, 64, 52, 0.9));
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(250, 82, 82, 0.4);
+}
+
+.canvas-node:hover .node-delete {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.node-delete:hover {
+  background: linear-gradient(135deg, #fa5252, #eb4034);
+  transform: scale(1.15) rotate(90deg);
+  box-shadow: 0 6px 20px rgba(250, 82, 82, 0.6);
+}
+
+.connection-handle {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9));
+  color: white;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.canvas-node:hover .connection-handle {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.connection-handle:hover {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  transform: scale(1.15);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.connection-handle:active {
+  transform: scale(0.95);
+}
+
+.node-icon {
+  width: 100%;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+  border-radius: 14px 14px 0 0;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.node-icon::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(102, 126, 234, 0.6) 50%,
+    transparent 100%
+  );
+}
+
+.canvas-node:hover .node-icon {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+}
+
+/* Node type specific styling */
+.canvas-node[data-type="architect"] {
+  border-color: rgba(102, 126, 234, 0.4);
+}
+
+.canvas-node[data-type="architect"] .node-icon {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.25), rgba(118, 75, 162, 0.25));
+  filter: drop-shadow(0 0 12px rgba(102, 126, 234, 0.3));
+}
+
+.canvas-node[data-type="broker"] {
+  border-color: rgba(240, 147, 251, 0.4);
+}
+
+.canvas-node[data-type="broker"] .node-icon {
+  background: linear-gradient(135deg, rgba(240, 147, 251, 0.25), rgba(250, 82, 82, 0.15));
+  filter: drop-shadow(0 0 12px rgba(240, 147, 251, 0.3));
+}
+
+.canvas-node[data-type="worker"] {
+  border-color: rgba(79, 172, 254, 0.4);
+}
+
+.canvas-node[data-type="worker"] .node-icon {
+  background: linear-gradient(135deg, rgba(79, 172, 254, 0.25), rgba(67, 233, 123, 0.15));
+  filter: drop-shadow(0 0 12px rgba(79, 172, 254, 0.3));
+}
+
+.canvas-node[data-type="validator"] {
+  border-color: rgba(67, 233, 123, 0.4);
+}
+
+.canvas-node[data-type="validator"] .node-icon {
+  background: linear-gradient(135deg, rgba(67, 233, 123, 0.25), rgba(52, 211, 153, 0.25));
+  filter: drop-shadow(0 0 12px rgba(67, 233, 123, 0.3));
+}
+
+.node-content {
+  padding: 1.25rem;
+}
+
+.node-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.3px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.node-type {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.node-model {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: 'Courier New', monospace;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  margin-top: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.canvas-node:hover .node-model {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+/* Processing state animation */
+.canvas-node.processing {
+  animation: processingGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes processingGlow {
+  0%, 100% {
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(102, 126, 234, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 0 40px rgba(102, 126, 234, 0.6),
+      0 0 60px rgba(102, 126, 234, 0.3);
+  }
+}
+
+/* Success state */
+.canvas-node.success {
+  animation: successFlash 0.6s ease-out;
+}
+
+@keyframes successFlash {
+  0% {
+    box-shadow: 0 0 0 0 rgba(67, 233, 123, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 20px rgba(67, 233, 123, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(67, 233, 123, 0);
+  }
+}
+
+/* Error state */
+.canvas-node.error {
+  animation: errorShake 0.5s ease-out;
+}
+
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
